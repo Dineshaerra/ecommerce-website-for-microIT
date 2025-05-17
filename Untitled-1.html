@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weather App</title>
+  <style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to bottom right, #dbeafe, #f0f9ff);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .weather-app {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+  }
+
+  h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #1e3a8a;
+  }
+
+  input {
+    padding: 12px;
+    width: 100%;
+    font-size: 16px;
+    margin-bottom: 10px;
+    border: 2px solid #dbeafe;
+    border-radius: 8px;
+    outline: none;
+    transition: 0.2s ease;
+  }
+
+  input:focus {
+    border-color: #60a5fa;
+  }
+
+  button {
+    padding: 12px;
+    width: 100%;
+    font-size: 16px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #2563eb;
+  }
+
+  .weather-info {
+    margin-top: 20px;
+    color: #111827;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .history {
+  margin-top: 25px;
+  text-align: left;
+  max-height: 150px; /* Adjust this value as needed */
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f9fafb;
+}
+
+#historyList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#historyList li {
+  padding: 6px;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#historyList li:hover {
+  background-color: #eff6ff;
+  border-radius: 5px;
+}
+
+  }
+</style>
+
+  </style>
+</head>
+<body>
+
+<div class="weather-app">
+  <h2>Weather App</h2>
+  <input type="text" id="cityInput" placeholder="Enter city name">
+  <button onclick="getWeather()">Get Weather</button>
+
+  <div class="weather-info" id="weatherInfo"></div>
+
+  <div class="history">
+    <h4>Search History:</h4>
+    <ul id="historyList"></ul>
+  </div>
+</div>
+
+<script>
+  const apiKey = 'YOUR_API_KEY'; // Replace with your OpenWeatherMap API key
+
+  function getWeather() {
+    const city = document.getElementById('cityInput').value.trim();
+    if (!city) return alert("Please enter a city");
+
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.cod !== 200) {
+          document.getElementById('weatherInfo').innerHTML = "City not found.";
+          return;
+        }
+
+        const html = `
+          <p><strong>${data.name}</strong></p>
+          <p>${data.weather[0].description}</p>
+          <p>🌡 Temp: ${data.main.temp}°C</p>
+          <p>💧 Humidity: ${data.main.humidity}%</p>
+        `;
+        document.getElementById('weatherInfo').innerHTML = html;
+        saveToHistory(city);
+      });
+  }
+
+  function saveToHistory(city) {
+    let history = JSON.parse(localStorage.getItem('weatherHistory')) || [];
+    if (!history.includes(city)) {
+      history.push(city);
+      localStorage.setItem('weatherHistory', JSON.stringify(history));
+      renderHistory();
+    }
+  }
+
+  function renderHistory() {
+    const history = JSON.parse(localStorage.getItem('weatherHistory')) || [];
+    const list = document.getElementById('historyList');
+    list.innerHTML = '';
+    history.forEach(city => {
+      const li = document.createElement('li');
+      li.textContent = city;
+      li.style.cursor = 'pointer';
+      li.onclick = () => {
+        document.getElementById('cityInput').value = city;
+        getWeather();
+      };
+      list.appendChild(li);
+    });
+  }
+
+  // Initialize on load
+  renderHistory();
+</script>
+
+</body>
+</html>
